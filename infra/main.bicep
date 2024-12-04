@@ -7,11 +7,16 @@ param environmentName string
 
 @minLength(1)
 @allowed([
-  'eastus2'
+  'canadaeast'
   'eastus'
+  'eastus2'
+  'francecentral'
   'japaneast'
-  'uksouth'
-  'northeurope'
+  'norwayeast'
+  'polandcentral'
+  'southindia'
+  'swedencentral'
+  'switzerlandnorth'
   'westus3'
 ])
 @description('Primary location for all resources.')
@@ -38,12 +43,23 @@ var tags = {
 }
 
 var chatSettings = {
-  maxConversationTokens: '100'
-  cacheSimilarityScore: '0.99'
+  maxContextWindow: '3'
+  cacheSimilarityScore: '0.95'
   productMaxResults: '10'
 }
 
-var productDataSource = 'https://cosmosdbcosmicworks.blob.core.windows.net/cosmic-works-vectorized/product-text-3-large-1536.json'
+var openAiSettings = {
+  completionModelName: 'gpt-4o'
+  completionDeploymentName: 'gpt-4o'
+  embeddingModelName: 'text-embedding-3-large'
+  embeddingDeploymentName: 'text-embedding-3-large'
+  maxRagTokens: '1500'
+  maxContextTokens: '500'
+}
+
+var productDataSourceUri = 'https://cosmosdbcosmicworks.blob.core.windows.net/cosmic-works-vectorized/product-text-3-large-1536-llm-gen-2.json'
+
+var principalType = 'User'
 
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: environmentName
@@ -67,6 +83,10 @@ module ai 'app/ai.bicep' = {
   params: {
     accountName: !empty(openAiAccountName) ? openAiAccountName : '${abbreviations.openAiAccount}-${resourceToken}'
     location: location
+    completionModelName: openAiSettings.completionModelName
+    completionsDeploymentName: openAiSettings.completionDeploymentName
+    embeddingsModelName: openAiSettings.embeddingModelName
+    embeddingsDeploymentName: openAiSettings.embeddingDeploymentName
     tags: tags
   }
 }
@@ -84,14 +104,16 @@ module web 'app/web.bicep' = {
       chatContainer: database.outputs.containers[0].name
       cacheContainer: database.outputs.containers[1].name
       productContainer: database.outputs.containers[2].name
-      productDataSource: productDataSource
+      productDataSourceUri: productDataSourceUri
     }
     openAiSettings: {
       completionDeploymentName: ai.outputs.deployments[0].name
       embeddingDeploymentName: ai.outputs.deployments[1].name
+      maxRagTokens: openAiSettings.maxRagTokens
+      maxContextTokens: openAiSettings.maxContextTokens
     }
     chatSettings: {
-      maxConversationTokens: chatSettings.maxConversationTokens
+      maxContextWindow: chatSettings.maxContextWindow
       cacheSimilarityScore: chatSettings.cacheSimilarityScore
       productMaxResults: chatSettings.productMaxResults
     }
@@ -122,6 +144,7 @@ module security 'app/security.bicep' = {
     databaseAccountName: database.outputs.accountName
     appPrincipalId: identity.outputs.principalId
     userPrincipalId: !empty(principalId) ? principalId : null
+    principalType: principalType
   }
 }
 
@@ -131,14 +154,16 @@ output AZURE_COSMOS_DB_DATABASE_NAME string = database.outputs.database.name
 output AZURE_COSMOS_DB_CHAT_CONTAINER_NAME string = database.outputs.containers[0].name
 output AZURE_COSMOS_DB_CACHE_CONTAINER_NAME string = database.outputs.containers[1].name
 output AZURE_COSMOS_DB_PRODUCT_CONTAINER_NAME string = database.outputs.containers[2].name
-output AZURE_COSMOS_DB_PRODUCT_DATA_SOURCE string = productDataSource
+output AZURE_COSMOS_DB_PRODUCT_DATA_SOURCE_URI string = productDataSourceUri
 
 // AI outputs
 output AZURE_OPENAI_ACCOUNT_ENDPOINT string = ai.outputs.endpoint
 output AZURE_OPENAI_COMPLETION_DEPLOYMENT_NAME string = ai.outputs.deployments[0].name
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME string = ai.outputs.deployments[1].name
+output AZURE_OPENAI_MAX_RAG_TOKENS string = openAiSettings.maxRagTokens
+output AZURE_OPENAI_MAX_CONTEXT_TOKENS string = openAiSettings.maxContextTokens
 
 // Chat outputs
-output AZURE_CHAT_MAX_CONVERSATION_TOKENS string = chatSettings.maxConversationTokens
+output AZURE_CHAT_MAX_CONTEXT_WINDOW string = chatSettings.maxContextWindow
 output AZURE_CHAT_CACHE_SIMILARITY_SCORE string = chatSettings.cacheSimilarityScore
 output AZURE_CHAT_PRODUCT_MAX_RESULTS string = chatSettings.productMaxResults
