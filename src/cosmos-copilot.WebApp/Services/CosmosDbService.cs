@@ -16,7 +16,7 @@ public class CosmosDbService
     private readonly Container _chatContainer;
     private readonly Container _cacheContainer;
     private readonly Container _productContainer;
-    private readonly string _productDataSourceURI;
+    //private readonly string _productDataSourceURI;
 
     /// <summary>
     /// Creates a new instance of the service.
@@ -33,15 +33,15 @@ public class CosmosDbService
         var chatContainerName = cosmosOptions.Value.ChatContainer;
         var cacheContainerName = cosmosOptions.Value.CacheContainer;
         var productContainerName = cosmosOptions.Value.ProductContainer;
-        var productDataSourceURI = cosmosOptions.Value.ProductDataSourceURI;
+        //var productDataSourceURI = cosmosOptions.Value.ProductDataSourceURI;
 
         ArgumentNullException.ThrowIfNullOrEmpty(databaseName);
         ArgumentNullException.ThrowIfNullOrEmpty(chatContainerName);
         ArgumentNullException.ThrowIfNullOrEmpty(cacheContainerName);
         ArgumentNullException.ThrowIfNullOrEmpty(productContainerName);
-        ArgumentNullException.ThrowIfNullOrEmpty(productDataSourceURI);
+        //ArgumentNullException.ThrowIfNullOrEmpty(productDataSourceURI);
 
-        _productDataSourceURI = productDataSourceURI;
+        //_productDataSourceURI = productDataSourceURI;
 
         Database database = client.GetDatabase(databaseName)!;
         Container chatContainer = database.GetContainer(chatContainerName)!;
