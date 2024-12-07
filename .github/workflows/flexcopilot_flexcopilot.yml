@@ -22,7 +22,7 @@ jobs:
           dotnet-version: '8.x'
 
       - name: Restore .NET workloads
-        run: dotnet workload restore
+        run: dotnet workload restore --project src/cosmos-copilot.AppHost/cosmos-copilot.AppHost.csproj
 
       - name: Build with dotnet
         run: dotnet build src --configuration Release
