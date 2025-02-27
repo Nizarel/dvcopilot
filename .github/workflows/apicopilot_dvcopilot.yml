@@ -24,10 +24,12 @@ jobs:
           dotnet-version: '8.x'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release /workspaces/dvcopilot/src/OmniPilot.API/OmniPilot.API.csproj
+        run: dotnet build --configuration Release
+        working-directory: src/OmniPilot.API
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp /workspaces/dvcopilot/src/OmniPilot.API/OmniPilot.API.csproj
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        working-directory: src/OmniPilot.API
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -65,3 +67,4 @@ jobs:
           app-name: 'dvcopilot'
           slot-name: 'Production'
           package: .
+          
