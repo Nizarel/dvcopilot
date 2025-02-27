@@ -8,17 +8,17 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["cosmos-copilot.csproj", "."]
-RUN dotnet restore "./cosmos-copilot.csproj"
+COPY ["OmniPilot.API.csproj", "."]
+RUN dotnet restore "./OmniPilot.API.csproj"
 COPY . .
 WORKDIR "/src/."
-RUN dotnet build "./cosmos-copilot.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./OmniPilot.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./cosmos-copilot.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./OmniPilot.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "cosmos-copilot.dll"]
+ENTRYPOINT ["dotnet", "OmniPilot.API.dll"]
