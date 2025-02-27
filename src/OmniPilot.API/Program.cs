@@ -6,22 +6,17 @@ using Microsoft.Extensions.Options;
 using System.Text.Json;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add service defaults & Aspire components.
-builder.AddServiceDefaults();
-
 builder.RegisterConfiguration();
+builder.Services.AddControllers(); // Use controllers instead of Razor pages and Blazor
+builder.Services.RegisterServices();
 
-// Remove Razor Pages and Blazor
-// builder.Services.AddRazorPages();
-// builder.Services.AddServerSideBlazor();
-
-// Add services to the container.
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+///////////////////////////////////////////////////////////////////////////////////////
 // Configure Azure Cosmos DB Aspire integration
 var cosmosEndpoint = builder.Configuration.GetSection(nameof(CosmosDb)).GetValue<string>("Endpoint");
 if (cosmosEndpoint is null)
@@ -51,6 +46,7 @@ builder.AddAzureCosmosClient(
             }
         };
     });
+    
 
 // Configure OpenAI Aspire integration
 var openAIEndpoint = builder.Configuration.GetSection(nameof(OpenAi)).GetValue<string>("Endpoint");
@@ -65,20 +61,33 @@ builder.AddAzureOpenAIClient("openAiConnectionName",
         settings.Credential = new DefaultAzureCredential();
     });
 
-builder.Services.RegisterServices();
+//////////////////////////////////////////////////////////////////////////////////////////
+///
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = null; // Removes the limit; use with caution
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(options  =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+options.SwaggerEndpoint("/swagger/v1/swagger.json", "Web API V1");
+if(app.Environment.IsDevelopment())
+options.RoutePrefix  =  "swagger";
+else
+options.RoutePrefix  =  string.Empty;
 }
+);
+app.UseSwagger();
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
+app.UseStaticFiles();
+app.UseRouting();
+
+app.MapControllers(); // Map controllers instead of Blazor hub 
 
 await app.RunAsync();
 

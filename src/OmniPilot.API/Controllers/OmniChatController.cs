@@ -15,6 +15,13 @@ public class OmniChatController : ControllerBase
         _chatService = chatService;
     }
 
+    // [HttpGet("sessionssessions/{tenantId}")]
+    // public async Task<ActionResult<List<Session>>> GetAllSessions()
+    // {
+    //     var sessions = await _chatService.GetAllChatSessionsAsync();
+    //     return Ok(sessions);
+    // }
+
     [HttpGet("sessions/{tenantId}/{userId}")]
     public async Task<IActionResult> GetAllChatSessions(string tenantId, string userId)
     {

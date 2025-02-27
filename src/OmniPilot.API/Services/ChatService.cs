@@ -161,6 +161,11 @@ public class ChatService
     /// <summary>
     /// Returns list of chat session ids and names for left-hand nav to bind to (display Name and ChatSessionId as hidden)
     /// </summary>
+    // public async Task<List<Session>> GetTenantAllChatSessionsAsync(string tenantId)
+    // {
+    //     return await _cosmosDbService.GetTenantSessionsAsync(tenantId);
+    // }
+
     public async Task<List<Session>> GetAllChatSessionsAsync(string tenantId, string userId)
     {
         return await _cosmosDbService.GetSessionsAsync(tenantId, userId);
